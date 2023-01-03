@@ -2,8 +2,6 @@ const { hexStripZeros } = require("ethers/lib/utils")
 const { hardhatArguments } = require("hardhat")
 
 const main = async () => {
-    const [owner, randomPerson] = await hre.ethers.getSigners();
-
     // compile contract & generate necessary files we need to work with our contract under "artifacts" directory
     // Then, Hardhat will create a local Eth network for just this contract.
     //      after script complets, it'll destry this local network. Like refreshing 
@@ -13,19 +11,21 @@ const main = async () => {
     const waveContract = await waveContractFactory.deploy();
     await waveContract.deployed();
     console.log("Contract deployed to:", waveContract.address);
-    console.log("Contract deployed by:", owner.address);
 
-    await waveContract.getTotalWaves();
+    let waveCount;
+    waveCount = await waveContract.getTotalWaves();
+    console.log(waveCount.toNumber());
 
-    const firstWaveTxn = await waveContract.wave();
-    await firstWaveTxn.wait();
+    // test by sending a few waves:
+    let waveTxn = await waveContract.wave("A message sent, Hi!");
+    await waveTxn.wait(); // wait for the transaction to be mind
 
-    await waveContract.getTotalWaves();
+    const [_, randomPerson] = await hre.ethers.getSigners();
+    waveTxn = await waveContract.connect(randomPerson).wave("Another message, Hello Friend!");
+    await waveTxn.wait();
 
-    const secondWaveTxn = await waveContract.connect(randomPerson).wave();
-    await secondWaveTxn.wait();
-
-    await waveContract.getTotalWaves();
+    let allWaves = await waveContract.getAllWaves();
+    console.log(allWaves);
 };
 
 const runMain = async () => {
