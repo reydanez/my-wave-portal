@@ -21,8 +21,8 @@ contract WavePortal {
     // This is what lets me hold all the waves anyone ever sends to me
     Wave[] waves;
 
-    constructor() {
-        console.log("I AM A SMART CONTRACT. HELLO!");
+    constructor() payable {
+        console.log("I AM A SMART CONTRACT AND I AM CREATED. HELLO!");
     }
 
     // requires a string called _message: the message our user sends us from the frontend web ui
@@ -35,6 +35,17 @@ contract WavePortal {
 
         // emit/execute the NewWave event when this wave() function is called
         emit NewWave(msg.sender, block.timestamp, _message);
+
+        // initialize a prizeAmount denominated in ether
+        uint256 prizeAmount = 0.0001 ether;
+        require (
+            prizeAmount <= address(this).balance,
+            "Trying to withdraw more money than the contract has."
+        );
+
+        // send prizeAmount money to sender
+        (bool success, ) = (msg.sender).call{value: prizeAmount}("");
+        require(success, "Failed to withdraw money from contract.");
     }
 
     // this will make it easy to retrieve the waves from our website

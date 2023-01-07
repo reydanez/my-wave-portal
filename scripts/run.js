@@ -8,21 +8,31 @@ const main = async () => {
     //      your local server every time so it's easy to debug errors
     // Finallly, once it's deployed, waveContract.address will give us the addr of the deployed contract
     const waveContractFactory = await hre.ethers.getContractFactory("WavePortal");
-    const waveContract = await waveContractFactory.deploy();
+    const waveContract = await waveContractFactory.deploy({
+        value: hre.ethers.utils.parseEther("0.1")
+    });
     await waveContract.deployed();
     console.log("Contract deployed to:", waveContract.address);
 
-    let waveCount;
-    waveCount = await waveContract.getTotalWaves();
-    console.log(waveCount.toNumber());
+    // Get contract balance
+    let contractBalance = await hre.ethers.provider.getBalance(
+        waveContract.address
+    );
+    console.log(
+        "Contract balance",
+        hre.ethers.utils.formatEther(contractBalance)
+    );
 
-    // test by sending a few waves:
+    // test by sending a wave:
     let waveTxn = await waveContract.wave("A message sent, Hi!");
-    await waveTxn.wait(); // wait for the transaction to be mind
+    await waveTxn.wait(); // wait for the transaction to be mined
 
-    const [_, randomPerson] = await hre.ethers.getSigners();
-    waveTxn = await waveContract.connect(randomPerson).wave("Another message, Hello Friend!");
-    await waveTxn.wait();
+    // get contract balance to see what happened
+    contractBalance = await hre.ethers.provider.getBalance(waveContract.address);
+    console.log(
+        "Contract balance:",
+        hre.ethers.utils.formatEther(contractBalance)
+    );
 
     let allWaves = await waveContract.getAllWaves();
     console.log(allWaves);
